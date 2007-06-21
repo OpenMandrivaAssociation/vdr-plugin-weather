@@ -2,7 +2,7 @@
 %define plugin	weather
 %define name	vdr-plugin-%plugin
 %define version	0.2.1e
-%define rel	3
+%define rel	4
 
 Summary:	VDR plugin: Displays the current weather conditons
 Name:		%name
