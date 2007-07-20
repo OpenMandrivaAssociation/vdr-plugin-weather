@@ -15,6 +15,7 @@ Source:		http://www.moldaner.de/vdr/download/vdr-%plugin-%version.tar.bz2
 # from e-tobi repository:
 Patch0:		weather-02_vdr_1.3-fix.dpatch
 Patch1:		weather-03_g++4.1-fix.dpatch
+Patch2:		weather-04_ftp-location.dpatch
 BuildRoot:	%{_tmppath}/%{name}-buildroot
 BuildRequires:	vdr-devel >= 1.4.1-6
 BuildRequires:	mdsplib-devel
@@ -28,6 +29,7 @@ Displays the current weather conditions for a selected location.
 %setup -q -n %plugin-%version
 %patch0 -p1
 %patch1 -p1
+%patch2 -p1
 chmod 0644 HISTORY README
 
 %build
