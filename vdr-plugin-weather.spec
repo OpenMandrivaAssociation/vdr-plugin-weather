@@ -16,7 +16,6 @@ Source:		http://www.moldaner.de/vdr/download/vdr-%plugin-%version.tar.bz2
 Patch0:		weather-02_vdr_1.3-fix.dpatch
 Patch1:		weather-03_g++4.1-fix.dpatch
 Patch2:		weather-04_ftp-location.dpatch
-BuildRoot:	%{_tmppath}/%{name}-buildroot
 BuildRequires:	vdr-devel >= 1.4.1-6
 BuildRequires:	mdsplib-devel
 BuildRequires:	ftp-devel
