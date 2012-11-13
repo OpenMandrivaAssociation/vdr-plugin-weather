@@ -1,0 +1,1142 @@
+
+This is a semi-automatically created i18n adaptation patch and may contain
+errors (such as missing translations). This should only be used as a
+temporary measure until the upstream plugin maintainer fixes the plugin
+properly according to the instructions in i18n-to-gettext.pl.
+
+Created for Mandriva Linux packaging by Anssi Hannula <anssi@mandriva.org>.
+
+
+Index: weather-0.2.1e/Makefile
+===================================================================
+--- weather-0.2.1e/Makefile
++++ weather-0.2.1e/Makefile	2008-04-25 12:41:44.000000000 +0300
+@@ -48,7 +48,7 @@
+ 
+ ### The object files (add further files here):
+ 
+-OBJS = $(PLUGIN).o setup.o i18n.o weatherUtil.o display.o metarReader.o simpleDisplay.o
++OBJS = $(PLUGIN).o setup.o  weatherUtil.o display.o metarReader.o simpleDisplay.o
+ 
+ ### Implicit rules:
+ 
+@@ -64,9 +64,34 @@
+ 
+ -include $(DEPFILE)
+ 
++### Internationalization (I18N):
++
++PODIR     = po
++LOCALEDIR = $(VDRDIR)/locale
++I18Npo    = $(wildcard $(PODIR)/*.po)
++I18Nmsgs  = $(addprefix $(LOCALEDIR)/, $(addsuffix /LC_MESSAGES/vdr-$(PLUGIN).mo, $(notdir $(foreach file, $(I18Npo), $(basename $(file))))))
++I18Npot   = $(PODIR)/$(PLUGIN).pot
++
++%.mo: %.po
++	msgfmt -c -o $@ $<
++
++$(I18Npot): $(wildcard *.[ch] *.[ch]xx *.cc *.[ch]pp *.hh)
++	xgettext -C -cTRANSLATORS --no-wrap --no-location -k -ktr -ktrNOOP --msgid-bugs-address='<http://qa.mandriva.com/>' -o $@ $^
++
++%.po: $(I18Npot)
++	msgmerge -U --no-wrap --no-location --backup=none -q $@ $<
++	@touch $@
++
++$(I18Nmsgs): $(LOCALEDIR)/%/LC_MESSAGES/vdr-$(PLUGIN).mo: $(PODIR)/%.mo
++	@mkdir -p $(dir $@)
++	cp $< $@
++
++.PHONY: i18n
++i18n: $(I18Nmsgs)
++
+ ### Targets:
+ 
+-all: libvdr-$(PLUGIN).so
++all: libvdr-$(PLUGIN).so i18n
+ 
+ libvdr-$(PLUGIN).so: $(OBJS)
+ 	$(CXX) $(CXXFLAGS) -shared $(OBJS) $(LIBS) -o $@
+@@ -81,4 +106,5 @@
+ 	@echo Distribution package created as $(PACKAGE).tgz
+ 
+ clean:
++	@-rm -f $(PODIR)/*.mo $(PODIR)/*.pot
+ 	@-rm -f $(OBJS) $(DEPFILE) *.so *.tgz core* *~
+Index: weather-0.2.1e/i18n.c
+===================================================================
+--- weather-0.2.1e/i18n.c
++++ weather-0.2.1e/i18n.c	2008-04-25 12:41:44.000000000 +0300
+@@ -1,477 +0,0 @@
+-/*
+- * i18n.c: Internationalization
+- *
+- * See the README file for copyright information and how to reach the author.
+- *
+- * $Id: i18n.c 1.3 2002/06/23 13:05:59 kls Exp $
+- */
+-
+-#include "i18n.h"
+-
+-const tI18nPhrase Phrases[] = {
+-  { "Weather",
+-    "Wetter",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "Météo",
+-    "",// TODO
+-    "Sää",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-  },
+-  { "Station Id",
+-    "Stations Id",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "Station Id",
+-    "",// TODO
+-    "Asematunnus",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-  },
+-  { "Username",
+-    "Anmeldename",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "Utilisateur",
+-    "",// TODO
+-    "Käyttäjätunnus",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-  },
+-  { "Password (e-mail)",
+-    "Passwort (E-Mail)",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "Mot de passe (e-mail)",
+-    "",// TODO
+-    "Salasana (e-mail)",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-  },
+-  { "Updatetime (min)",
+-    "Aktualisierungsintervall (min)",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "Mise à jour (min)",
+-    "",// TODO
+-    "Päivitysväli (min)",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-  },
+-  { "Wind",
+-    "Wind",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "Vent",
+-    "",// TODO
+-    "Tuuli",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-  },
+-  { "Wind speed",
+-    "Windgeschwindigkeit",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "Vitesse du vent",
+-    "",// TODO
+-    "Tuulen nopeus",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-  },
+-  { "Wind direction",
+-    "Windrichtung",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "Direction du vent",
+-    "",// TODO
+-    "Tuulen suunta",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-  },
+-  { "Temperature",
+-    "Temperatur",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "Température",
+-    "",// TODO
+-    "Lämpötila",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-  },
+-  { "Windchill",
+-    "Gefühlte Temperatur",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "Température du vent",
+-    "",// TODO
+-    "Tuulivaikutus",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-  },
+-  { "Dew point",
+-    "Taupunkt",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "Point de condensation",
+-    "",// TODO
+-    "Kastepiste",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-  },
+-  { "Humidity",
+-    "Luftfeuchte",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "Humidité",
+-    "",// TODO
+-    "Ilmankosteus",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-  },
+-  { "Altimeter",
+-    "Luftdruck",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "Altimètre ",
+-    "",// TODO
+-    "Ilmanpaine",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-  },
+-  { "N",
+-    "N",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "Nord",
+-    "",// TODO
+-    "Pohjoinen",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-  },
+-  { "NE",
+-    "NO",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "N-O",
+-    "",// TODO
+-    "Koillinen",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-  },
+-  { "E",
+-    "O",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "Est",
+-    "",// TODO
+-    "Itä",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-  },
+-  { "SE",
+-    "SO",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "S-E",
+-    "",// TODO
+-    "Kaakko",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-  },
+-  { "S",
+-    "S",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "Sud",
+-    "",// TODO
+-    "Etelä",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-  },
+-  { "SW",
+-    "SW",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "S-O",
+-    "",// TODO
+-    "Lounas",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-  },
+-  { "W",
+-    "W",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "Ouest",
+-    "",// TODO
+-    "Länsi",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-  },
+-  { "NW",
+-    "NW",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "N-W",
+-    "",// TODO
+-    "Luode",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-  },
+-  { "Display",
+-    "Anzeige",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "Affichage",
+-    "",// TODO
+-    "Näyttö",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-  },
+-  { "Simple",
+-    "Einfach",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "Simple",
+-    "",// TODO
+-    "Yksinkertainen",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-  },
+-  { "Advanced",
+-    "Erweitert",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "Avancé",
+-    "",// TODO
+-    "Laajennettu",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-  },
+-  { "Displays the current weather conditons.",
+-    "Zeigt das aktuelle Wetter",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "Affiche la météo courante",
+-    "",// TODO
+-    "Näyttää tämänhetkisen säätilan",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-  },
+-  { "On",
+-    "An",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "En marche",
+-    "",// TODO
+-    "Päällä",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-  },
+-  { "Off",
+-    "Aus",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "Arrêt",
+-    "",// TODO
+-    "Poissa",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-  },
+-  { "Use passive connection",
+-    "Benutzte passive Verbindung",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "Utiliser une connection passive",
+-    "",// TODO
+-    "Käytä passiivista yhteyttä",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-  },
+-  { "No Data available",
+-    "Keine Daten verfügbar",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "Aucune donnée utilisable",
+-    "",// TODO
+-    "Ei tietoja saatavilla",
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-    "",// TODO
+-  },
+-  { NULL }
+-  };
+Index: weather-0.2.1e/i18n.h
+===================================================================
+--- weather-0.2.1e/i18n.h
++++ weather-0.2.1e/i18n.h	2008-04-25 12:41:44.000000000 +0300
+@@ -1,16 +0,0 @@
+-/*
+- * i18n.h: Internationalization
+- *
+- * See the README file for copyright information and how to reach the author.
+- *
+- * $Id: i18n.h 1.2 2002/05/11 14:48:16 kls Exp $
+- */
+-
+-#ifndef _I18N__H
+-#define _I18N__H
+-
+-#include <vdr/i18n.h>
+-
+-extern const tI18nPhrase Phrases[];
+-
+-#endif //_I18N__H
+Index: weather-0.2.1e/weather.c
+===================================================================
+--- weather-0.2.1e/weather.c
++++ weather-0.2.1e/weather.c	2008-04-25 12:41:44.000000000 +0300
+@@ -8,7 +8,7 @@
+ #include "weather.h"
+ #include "display.h"
+ #include "simpleDisplay.h"
+-#include "i18n.h"
++
+ #include <ctype.h>
+ #include <climits>
+ 
+@@ -71,7 +71,7 @@
+ }
+ 
+ bool cPluginWeather::Start(void) {
+-  RegisterI18n(Phrases);
++  
+   metarReader.StartUpdate();
+ 
+   return true;
+Index: weather-0.2.1e/weatherUtil.c
+===================================================================
+--- weather-0.2.1e/weatherUtil.c
++++ weather-0.2.1e/weatherUtil.c	2008-04-25 12:41:44.000000000 +0300
+@@ -1,6 +1,6 @@
+ #include <math.h>
+ #include "weatherUtil.h"
+-#include "i18n.h"
++#include <vdr/i18n.h>
+ 
+ int cWeatherUtil::calculateHumidity(double temperature, double dewPoint) {
+ 	return (int) (100.0 * cWeatherUtil::calculateSaturationVaporPressure(dewPoint) / cWeatherUtil::calculateSaturationVaporPressure(temperature));
+Index: weather-0.2.1e/po/de_DE.po
+===================================================================
+--- weather-0.2.1e/po/de_DE.po
++++ weather-0.2.1e/po/de_DE.po	2008-04-25 12:41:44.000000000 +0300
+@@ -0,0 +1,130 @@
++# VDR weather plugin language source file.
++# Copyright (C) YEAR THE VDR-weather'S COPYRIGHT HOLDER
++# This file is distributed under the same license as the VDR-weather package.
++# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
++#
++msgid ""
++msgstr ""
++"Project-Id-Version: VDR-weather\n"
++"Report-Msgid-Bugs-To: http://qa.mandriva.com/\n"
++"POT-Creation-Date: 2008-04-25 12:41+0300\n"
++"PO-Revision-Date: 2008-04-25 12:41+0300\n"
++"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
++"Language-Team: <vdr@linuxtv.org>\n"
++"MIME-Version: 1.0\n"
++"Content-Type: text/plain; charset=ISO-8859-15\n"
++"Content-Transfer-Encoding: 8bit\n"
++
++#: display.c:132 display.c:133 weather.h:24
++msgid "Weather"
++msgstr "Wetter"
++
++#: display.c:140
++msgid "Wind"
++msgstr "Wind"
++
++#: simpleDisplay.c:35
++msgid "No Data available"
++msgstr "Keine Daten verfügbar"
++
++#: simpleDisplay.c:109
++msgid "Temperature"
++msgstr "Temperatur"
++
++#: simpleDisplay.c:114 simpleDisplay.c:123 simpleDisplay.c:132
++#: simpleDisplay.c:141 simpleDisplay.c:150 simpleDisplay.c:161
++#: simpleDisplay.c:172
++msgid "No Data"
++msgstr ""
++
++#: simpleDisplay.c:118
++msgid "Windchill"
++msgstr "Gefühlte Temperatur"
++
++#: simpleDisplay.c:127
++msgid "Dew point"
++msgstr "Taupunkt"
++
++#: simpleDisplay.c:136
++msgid "Wind speed"
++msgstr "Windgeschwindigkeit"
++
++#: simpleDisplay.c:145
++msgid "Wind direction"
++msgstr "Windrichtung"
++
++#: simpleDisplay.c:154
++msgid "Humidity"
++msgstr "Luftfeuchte"
++
++#: simpleDisplay.c:165
++msgid "Altimeter"
++msgstr "Luftdruck"
++
++#: weather.c:23
++msgid "Station Id"
++msgstr "Stations Id"
++
++#: weather.c:24
++msgid "Username"
++msgstr "Anmeldename"
++
++#: weather.c:25
++msgid "Password (e-mail)"
++msgstr "Passwort (E-Mail)"
++
++#: weather.c:26
++msgid "Updatetime (min)"
++msgstr "Aktualisierungsintervall (min)"
++
++#: weather.c:27
++msgid "Use passive connection"
++msgstr "Benutzte passive Verbindung"
++
++#: weather.c:28
++msgid "Advanced"
++msgstr "Erweitert"
++
++#: weather.c:28
++msgid "Display"
++msgstr "Anzeige"
++
++#: weather.c:28
++msgid "Simple"
++msgstr "Einfach"
++
++#: weather.h:19
++msgid "Displays the current weather conditons."
++msgstr "Zeigt das aktuelle Wetter"
++
++#: weatherUtil.c:25 weatherUtil.c:41
++msgid "N"
++msgstr "N"
++
++#: weatherUtil.c:27
++msgid "NE"
++msgstr "NO"
++
++#: weatherUtil.c:29
++msgid "E"
++msgstr "O"
++
++#: weatherUtil.c:31
++msgid "SE"
++msgstr "SO"
++
++#: weatherUtil.c:33
++msgid "S"
++msgstr "S"
++
++#: weatherUtil.c:35
++msgid "SW"
++msgstr "SW"
++
++#: weatherUtil.c:37
++msgid "W"
++msgstr "W"
++
++#: weatherUtil.c:39
++msgid "NW"
++msgstr "NW"
+Index: weather-0.2.1e/po/fi_FI.po
+===================================================================
+--- weather-0.2.1e/po/fi_FI.po
++++ weather-0.2.1e/po/fi_FI.po	2008-04-25 12:41:44.000000000 +0300
+@@ -0,0 +1,130 @@
++# VDR weather plugin language source file.
++# Copyright (C) YEAR THE VDR-weather'S COPYRIGHT HOLDER
++# This file is distributed under the same license as the VDR-weather package.
++# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
++#
++msgid ""
++msgstr ""
++"Project-Id-Version: VDR-weather\n"
++"Report-Msgid-Bugs-To: http://qa.mandriva.com/\n"
++"POT-Creation-Date: 2008-04-25 12:41+0300\n"
++"PO-Revision-Date: 2008-04-25 12:41+0300\n"
++"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
++"Language-Team: <vdr@linuxtv.org>\n"
++"MIME-Version: 1.0\n"
++"Content-Type: text/plain; charset=ISO-8859-15\n"
++"Content-Transfer-Encoding: 8bit\n"
++
++#: display.c:132 display.c:133 weather.h:24
++msgid "Weather"
++msgstr "Sää"
++
++#: display.c:140
++msgid "Wind"
++msgstr "Tuuli"
++
++#: simpleDisplay.c:35
++msgid "No Data available"
++msgstr "Ei tietoja saatavilla"
++
++#: simpleDisplay.c:109
++msgid "Temperature"
++msgstr "Lämpötila"
++
++#: simpleDisplay.c:114 simpleDisplay.c:123 simpleDisplay.c:132
++#: simpleDisplay.c:141 simpleDisplay.c:150 simpleDisplay.c:161
++#: simpleDisplay.c:172
++msgid "No Data"
++msgstr ""
++
++#: simpleDisplay.c:118
++msgid "Windchill"
++msgstr "Tuulivaikutus"
++
++#: simpleDisplay.c:127
++msgid "Dew point"
++msgstr "Kastepiste"
++
++#: simpleDisplay.c:136
++msgid "Wind speed"
++msgstr "Tuulen nopeus"
++
++#: simpleDisplay.c:145
++msgid "Wind direction"
++msgstr "Tuulen suunta"
++
++#: simpleDisplay.c:154
++msgid "Humidity"
++msgstr "Ilmankosteus"
++
++#: simpleDisplay.c:165
++msgid "Altimeter"
++msgstr "Ilmanpaine"
++
++#: weather.c:23
++msgid "Station Id"
++msgstr "Asematunnus"
++
++#: weather.c:24
++msgid "Username"
++msgstr "Käyttäjätunnus"
++
++#: weather.c:25
++msgid "Password (e-mail)"
++msgstr "Salasana (e-mail)"
++
++#: weather.c:26
++msgid "Updatetime (min)"
++msgstr "Päivitysväli (min)"
++
++#: weather.c:27
++msgid "Use passive connection"
++msgstr "Käytä passiivista yhteyttä"
++
++#: weather.c:28
++msgid "Advanced"
++msgstr "Laajennettu"
++
++#: weather.c:28
++msgid "Display"
++msgstr "Näyttö"
++
++#: weather.c:28
++msgid "Simple"
++msgstr "Yksinkertainen"
++
++#: weather.h:19
++msgid "Displays the current weather conditons."
++msgstr "Näyttää tämänhetkisen säätilan"
++
++#: weatherUtil.c:25 weatherUtil.c:41
++msgid "N"
++msgstr "Pohjoinen"
++
++#: weatherUtil.c:27
++msgid "NE"
++msgstr "Koillinen"
++
++#: weatherUtil.c:29
++msgid "E"
++msgstr "Itä"
++
++#: weatherUtil.c:31
++msgid "SE"
++msgstr "Kaakko"
++
++#: weatherUtil.c:33
++msgid "S"
++msgstr "Etelä"
++
++#: weatherUtil.c:35
++msgid "SW"
++msgstr "Lounas"
++
++#: weatherUtil.c:37
++msgid "W"
++msgstr "Länsi"
++
++#: weatherUtil.c:39
++msgid "NW"
++msgstr "Luode"
+Index: weather-0.2.1e/po/fr_FR.po
+===================================================================
+--- weather-0.2.1e/po/fr_FR.po
++++ weather-0.2.1e/po/fr_FR.po	2008-04-25 12:41:44.000000000 +0300
+@@ -0,0 +1,130 @@
++# VDR weather plugin language source file.
++# Copyright (C) YEAR THE VDR-weather'S COPYRIGHT HOLDER
++# This file is distributed under the same license as the VDR-weather package.
++# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
++#
++msgid ""
++msgstr ""
++"Project-Id-Version: VDR-weather\n"
++"Report-Msgid-Bugs-To: http://qa.mandriva.com/\n"
++"POT-Creation-Date: 2008-04-25 12:41+0300\n"
++"PO-Revision-Date: 2008-04-25 12:41+0300\n"
++"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
++"Language-Team: <vdr@linuxtv.org>\n"
++"MIME-Version: 1.0\n"
++"Content-Type: text/plain; charset=ISO-8859-1\n"
++"Content-Transfer-Encoding: 8bit\n"
++
++#: display.c:132 display.c:133 weather.h:24
++msgid "Weather"
++msgstr "Météo"
++
++#: display.c:140
++msgid "Wind"
++msgstr "Vent"
++
++#: simpleDisplay.c:35
++msgid "No Data available"
++msgstr "Aucune donnée utilisable"
++
++#: simpleDisplay.c:109
++msgid "Temperature"
++msgstr "Température"
++
++#: simpleDisplay.c:114 simpleDisplay.c:123 simpleDisplay.c:132
++#: simpleDisplay.c:141 simpleDisplay.c:150 simpleDisplay.c:161
++#: simpleDisplay.c:172
++msgid "No Data"
++msgstr ""
++
++#: simpleDisplay.c:118
++msgid "Windchill"
++msgstr "Température du vent"
++
++#: simpleDisplay.c:127
++msgid "Dew point"
++msgstr "Point de condensation"
++
++#: simpleDisplay.c:136
++msgid "Wind speed"
++msgstr "Vitesse du vent"
++
++#: simpleDisplay.c:145
++msgid "Wind direction"
++msgstr "Direction du vent"
++
++#: simpleDisplay.c:154
++msgid "Humidity"
++msgstr "Humidité"
++
++#: simpleDisplay.c:165
++msgid "Altimeter"
++msgstr "Altimètre "
++
++#: weather.c:23
++msgid "Station Id"
++msgstr "Station Id"
++
++#: weather.c:24
++msgid "Username"
++msgstr "Utilisateur"
++
++#: weather.c:25
++msgid "Password (e-mail)"
++msgstr "Mot de passe (e-mail)"
++
++#: weather.c:26
++msgid "Updatetime (min)"
++msgstr "Mise à jour (min)"
++
++#: weather.c:27
++msgid "Use passive connection"
++msgstr "Utiliser une connection passive"
++
++#: weather.c:28
++msgid "Advanced"
++msgstr "Avancé"
++
++#: weather.c:28
++msgid "Display"
++msgstr "Affichage"
++
++#: weather.c:28
++msgid "Simple"
++msgstr "Simple"
++
++#: weather.h:19
++msgid "Displays the current weather conditons."
++msgstr "Affiche la météo courante"
++
++#: weatherUtil.c:25 weatherUtil.c:41
++msgid "N"
++msgstr "Nord"
++
++#: weatherUtil.c:27
++msgid "NE"
++msgstr "N-O"
++
++#: weatherUtil.c:29
++msgid "E"
++msgstr "Est"
++
++#: weatherUtil.c:31
++msgid "SE"
++msgstr "S-E"
++
++#: weatherUtil.c:33
++msgid "S"
++msgstr "Sud"
++
++#: weatherUtil.c:35
++msgid "SW"
++msgstr "S-O"
++
++#: weatherUtil.c:37
++msgid "W"
++msgstr "Ouest"
++
++#: weatherUtil.c:39
++msgid "NW"
++msgstr "N-W"
+Index: weather-0.2.1e/po/weather.pot
+===================================================================
+--- weather-0.2.1e/po/weather.pot
++++ weather-0.2.1e/po/weather.pot	2008-04-25 12:41:44.000000000 +0300
+@@ -0,0 +1,131 @@
++# SOME DESCRIPTIVE TITLE.
++# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
++# This file is distributed under the same license as the PACKAGE package.
++# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
++#
++#, fuzzy
++msgid ""
++msgstr ""
++"Project-Id-Version: PACKAGE VERSION\n"
++"Report-Msgid-Bugs-To: http://qa.mandriva.com/\n"
++"POT-Creation-Date: 2008-04-25 12:41+0300\n"
++"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
++"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
++"Language-Team: LANGUAGE <LL@li.org>\n"
++"MIME-Version: 1.0\n"
++"Content-Type: text/plain; charset=CHARSET\n"
++"Content-Transfer-Encoding: 8bit\n"
++
++#: display.c:132 display.c:133 weather.h:24
++msgid "Weather"
++msgstr ""
++
++#: display.c:140
++msgid "Wind"
++msgstr ""
++
++#: simpleDisplay.c:35
++msgid "No Data available"
++msgstr ""
++
++#: simpleDisplay.c:109
++msgid "Temperature"
++msgstr ""
++
++#: simpleDisplay.c:114 simpleDisplay.c:123 simpleDisplay.c:132
++#: simpleDisplay.c:141 simpleDisplay.c:150 simpleDisplay.c:161
++#: simpleDisplay.c:172
++msgid "No Data"
++msgstr ""
++
++#: simpleDisplay.c:118
++msgid "Windchill"
++msgstr ""
++
++#: simpleDisplay.c:127
++msgid "Dew point"
++msgstr ""
++
++#: simpleDisplay.c:136
++msgid "Wind speed"
++msgstr ""
++
++#: simpleDisplay.c:145
++msgid "Wind direction"
++msgstr ""
++
++#: simpleDisplay.c:154
++msgid "Humidity"
++msgstr ""
++
++#: simpleDisplay.c:165
++msgid "Altimeter"
++msgstr ""
++
++#: weather.c:23
++msgid "Station Id"
++msgstr ""
++
++#: weather.c:24
++msgid "Username"
++msgstr ""
++
++#: weather.c:25
++msgid "Password (e-mail)"
++msgstr ""
++
++#: weather.c:26
++msgid "Updatetime (min)"
++msgstr ""
++
++#: weather.c:27
++msgid "Use passive connection"
++msgstr ""
++
++#: weather.c:28
++msgid "Advanced"
++msgstr ""
++
++#: weather.c:28
++msgid "Display"
++msgstr ""
++
++#: weather.c:28
++msgid "Simple"
++msgstr ""
++
++#: weather.h:19
++msgid "Displays the current weather conditons."
++msgstr ""
++
++#: weatherUtil.c:25 weatherUtil.c:41
++msgid "N"
++msgstr ""
++
++#: weatherUtil.c:27
++msgid "NE"
++msgstr ""
++
++#: weatherUtil.c:29
++msgid "E"
++msgstr ""
++
++#: weatherUtil.c:31
++msgid "SE"
++msgstr ""
++
++#: weatherUtil.c:33
++msgid "S"
++msgstr ""
++
++#: weatherUtil.c:35
++msgid "SW"
++msgstr ""
++
++#: weatherUtil.c:37
++msgid "W"
++msgstr ""
++
++#: weatherUtil.c:39
++msgid "NW"
++msgstr ""
