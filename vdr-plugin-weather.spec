@@ -3,7 +3,7 @@
 Summary:	VDR plugin: Displays the current weather conditons
 Name:		vdr-plugin-%plugin
 Version:	0.2.1e
-Release:	14
+Release:	15
 Group:		Video
 License:	GPL
 URL:		http://www.moldaner.de/vdr/
