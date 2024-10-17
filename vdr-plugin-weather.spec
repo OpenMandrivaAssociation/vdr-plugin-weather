@@ -6,7 +6,7 @@ Version:	0.2.1e
 Release:	15
 Group:		Video
 License:	GPL
-URL:		http://www.moldaner.de/vdr/
+URL:		https://www.moldaner.de/vdr/
 Source:		http://www.moldaner.de/vdr/download/vdr-%plugin-%{version}.tar.bz2
 # dpatches from e-tobi repository
 Patch0:		weather-02_vdr_1.3-fix.dpatch
